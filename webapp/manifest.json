@@ -48,7 +48,7 @@
         {
           "pattern": "",
           "name": "main",
-          "target": ["TargetFinancial"]
+          "target": ["main"]
         },
         {
           "name": "RouteFinancial",
@@ -58,8 +58,8 @@
       ],
       "targets": {
         "main": {
-          "viewId": "Main",
-          "viewName": "Main"
+          "viewId": "Contas",
+          "viewName": "Contas"
         },
         "TargetFinancial": {
           "viewId": "financial",
