@@ -1,0 +1,115 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:layout="sap.ui.layout"
+    xmlns:uxap="sap.uxap"
+    controllerName="portalrbl.app.ui5.controller.Main"
+>
+    <uxap:ObjectPageLayout
+        id="ObjectPageLayout"
+        showTitleInHeaderContent="true"
+        upperCaseAnchorBar="false"
+    >
+        <uxap:headerTitle>
+            <uxap:ObjectPageHeader
+                objectTitle="Ramon Barbosa de Lima"
+                objectSubtitle="{i18n>headerSubtitle}"
+                objectImageURI="sap-icon://customer"
+                objectImageShape="Circle"
+            >
+                <uxap:actions>
+                    <!-- Seletor de Idioma -->
+                    <SegmentedButton 
+                        selectedKey="{= ${sap.ui.getCore().getConfiguration().getLanguage()}.includes('en') ? 'EN' : 'PT' }" 
+                        selectionChange="onLanguageChange">
+                        <items>
+                            <SegmentedButtonItem key="PT" text="PT" />
+                            <SegmentedButtonItem key="EN" text="EN" />
+                        </items>
+                    </SegmentedButton>
+                    
+                </uxap:actions>
+            </uxap:ObjectPageHeader>
+        </uxap:headerTitle>
+
+        <uxap:headerContent>
+            <HeaderContainer>
+                <ObjectStatus
+                    title="{i18n>statusLocal}"
+                    text="Curitiba, PR"
+                    state="Information"
+                    icon="sap-icon://map-fill"
+                />
+                <ObjectStatus
+                    title="{i18n>statusSpecialty}"
+                    text="UI5 &amp; Integration"
+                    state="Success"
+                    icon="sap-icon://activate"
+                />
+                <ObjectStatus
+                    title="{i18n>statusWhatsapp}"
+                    text="(41) 99544-2034"
+                    state="Indication04"
+                    icon="sap-icon://incoming-call"
+                    active="true"
+                    press="onPressWhatsApp"
+                />
+            </HeaderContainer>
+        </uxap:headerContent>
+
+        <uxap:sections>
+            <uxap:ObjectPageSection title="{i18n>sectionInicio}">
+                <uxap:subSections>
+                    <uxap:ObjectPageSubSection>
+                        <uxap:blocks>
+                            <VBox class="sapUiSmallMargin">
+                                <Title
+                                    text="{i18n>welcomeTitle}"
+                                    titleStyle="H3"
+                                    color="Default"
+                                />
+                                <FormattedText
+                                    htmlText="{i18n>welcomeDescription}"
+                                    class="sapUiSmallMarginTop"
+                                />
+                            </VBox>
+                        </uxap:blocks>
+                    </uxap:ObjectPageSubSection>
+                </uxap:subSections>
+            </uxap:ObjectPageSection>
+
+            <uxap:ObjectPageSection title="{i18n>sectionApps}">
+                <uxap:subSections>
+                    <uxap:ObjectPageSubSection>
+                        <uxap:blocks>
+                            <layout:HorizontalLayout allowWrapping="true">
+                                <GenericTile
+                                    header="{i18n>tileFinancialHeader}"
+                                    subheader="{i18n>tileFinancialSubheader}"
+                                    press="onPressGastos"
+                                    class="sapUiTinyMargin"
+                                    scope="Display"
+                                >
+                                    <TileContent footer="{i18n>tileFinancialFooter}">
+                                        <ImageContent src="sap-icon://lead" />
+                                    </TileContent>
+                                </GenericTile>
+
+                                <GenericTile
+                                    header="{i18n>tileAutocompleteHeader}"
+                                    subheader="{i18n>tileAutocompleteSubheader}"
+                                    press="onPressAutocomplete"
+                                    class="sapUiTinyMargin"
+                                >
+                                    <TileContent footer="{i18n>tileAutocompleteFooter}">
+                                        <ImageContent src="sap-icon://document-text" />
+                                    </TileContent>
+                                </GenericTile>
+                            </layout:HorizontalLayout>
+                        </uxap:blocks>
+                    </uxap:ObjectPageSubSection>
+                </uxap:subSections>
+            </uxap:ObjectPageSection>
+        </uxap:sections>
+    </uxap:ObjectPageLayout>
+</mvc:View>

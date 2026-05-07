@@ -1,0 +1,79 @@
+{
+  "_version": "1.49.0",
+  "sap.app": {
+    "id": "portalrbl.app.ui5",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "title": "Meu Projeto UI5",
+    "description": "Uma aplicação UI5 de exemplo",
+    "applicationVersion": {
+      "version": "1.0.0"
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "portalrbl.app.ui5.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "portalrbl.app.ui5.i18n.i18n",
+          "supportedLocales": ["pt", "en"],
+          "fallbackLocale": "pt"
+        }
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "portalrbl.app.ui5.view",
+        "controlId": "App",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        {
+          "pattern": "",
+          "name": "main",
+          "target": ["main"]
+        },
+        {
+          "name": "RouteFinancial",
+          "pattern": "financial",
+          "target": ["TargetFinancial"]
+        }
+      ],
+      "targets": {
+        "main": {
+          "viewId": "Main",
+          "viewName": "Main"
+        },
+        "TargetFinancial": {
+          "viewId": "financial",
+          "viewName": "apps.Financial"
+        }
+      }
+    },
+    "dependencies": {
+      "minUI5Version": "1.48.0",
+      "libs": {
+        "sap.ui.core": {},
+        "sap.m": {},
+        "sap.uxap": {} 
+      }
+    }
+  }
+}

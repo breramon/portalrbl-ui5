@@ -1,0 +1,3 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="portalrbl.app.ui5.controller.App">
+    <App id="App"/>
+</mvc:View>
