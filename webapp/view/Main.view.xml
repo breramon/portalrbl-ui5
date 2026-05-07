@@ -66,7 +66,6 @@
                                 <Title
                                     text="{i18n>welcomeTitle}"
                                     titleStyle="H3"
-                                    color="Default"
                                 />
                                 <FormattedText
                                     htmlText="{i18n>welcomeDescription}"

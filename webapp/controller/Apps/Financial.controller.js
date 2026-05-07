@@ -23,8 +23,19 @@ sap.ui.define([
             // 2. Define data atual no DatePicker por padrão
             this.getView().byId("idDataLancamento").setDateValue(new Date());
 
-            // 3. Garante que carrega os dados toda vez que a rota é acedida
-            this.getOwnerComponent().getRouter().getRoute("financial").attachPatternMatched(this._loadFirebaseData, this);
+            var oRouter = this.getOwnerComponent().getRouter();
+
+            // 1. Buscamos a rota
+            var oRoute = oRouter.getRoute("financial");
+
+            // 2. Verificamos se ela existe antes de prosseguir
+            if (oRoute) {
+                oRoute.attachPatternMatched(this._loadFirebaseData, this);
+            } else {
+                console.error("Erro: A rota 'financial' não foi encontrada no manifest.json. Verifique o case-sensitivity.");
+                // Opcional: carregar os dados mesmo sem a rota bater, se necessário
+                this._loadFirebaseData();
+            }
         },
 
         /**
@@ -44,14 +55,14 @@ sap.ui.define([
                     if (data) {
                         var aLoadedExpenses = Object.keys(data).map(function (key) {
                             var oItem = data[key];
-                            oItem.id = key; 
+                            oItem.id = key;
                             return oItem;
                         });
                         oModel.setProperty("/expenses", aLoadedExpenses);
                     } else {
                         oModel.setProperty("/expenses", []);
                     }
-                    
+
                     // CHAMA O CÁLCULO AUTOMÁTICO APÓS CARREGAR
                     that._updateTotal();
                 })
@@ -68,12 +79,12 @@ sap.ui.define([
             var oView = this.getView();
             var oModel = oView.getModel("localModel");
             var aExpenses = oModel.getProperty("/expenses") || [];
-            
+
             // Pega a data do DatePicker para saber qual mês somar
             var oRefDate = oView.byId("idDataLancamento").getDateValue() || new Date();
             var iMonth = oRefDate.getMonth();
             var iYear = oRefDate.getFullYear();
-            
+
             // Filtra e soma
             var fTotal = aExpenses.reduce(function (acc, item) {
                 var oItemDate = new Date(item.date);
@@ -91,7 +102,7 @@ sap.ui.define([
                 }
             });
 
-            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({minFractionDigits: 2}).format(fTotal);
+            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({ minFractionDigits: 2 }).format(fTotal);
             oView.byId("idTotalMes").setText(sFormattedTotal);
         },
 
@@ -124,19 +135,19 @@ sap.ui.define([
                 method: 'POST',
                 body: JSON.stringify(oNewExpense)
             })
-            .then(response => response.json())
-            .then(data => {
-                oNewExpense.id = data.name;
-                aExpenses.push(oNewExpense);
-                oModel.setProperty("/expenses", aExpenses);
+                .then(response => response.json())
+                .then(data => {
+                    oNewExpense.id = data.name;
+                    aExpenses.push(oNewExpense);
+                    oModel.setProperty("/expenses", aExpenses);
 
-                // Limpa campos e ATUALIZA O TOTAL
-                oView.byId("idValorDespesa").setValue("");
-                oView.byId("idDescricaoDespesa").setValue("");
-                that._updateTotal();
-                
-                MessageToast.show("Salvo com sucesso!");
-            });
+                    // Limpa campos e ATUALIZA O TOTAL
+                    oView.byId("idValorDespesa").setValue("");
+                    oView.byId("idDescricaoDespesa").setValue("");
+                    that._updateTotal();
+
+                    MessageToast.show("Salvo com sucesso!");
+                });
         },
 
         onDeleteExpense: function (oEvent) {
@@ -157,7 +168,7 @@ sap.ui.define([
                                 var iIndex = parseInt(sPath.split("/").pop());
                                 aExpenses.splice(iIndex, 1);
                                 oModel.setProperty("/expenses", aExpenses);
-                                
+
                                 // ATUALIZA O TOTAL APÓS APAGAR
                                 that._updateTotal();
                                 MessageToast.show("Eliminado.");
