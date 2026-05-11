@@ -4,8 +4,8 @@
     "id": "portalrbl.app.ui5",
     "type": "application",
     "i18n": "i18n/i18n.properties",
-    "title": "Meu Projeto UI5",
-    "description": "Uma aplicação UI5 de exemplo",
+    "title": "Controle de Gastos",
+    "description": "Controle",
     "applicationVersion": {
       "version": "1.0.0"
     }
