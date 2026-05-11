@@ -1,143 +1,47 @@
-<mvc:View
-    controllerName="portalrbl.app.ui5.controller.Contas"
-    xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m"
-    xmlns:f="sap.f"
-    xmlns:layout="sap.ui.layout"
-    xmlns:form="sap.ui.layout.form"
->
-    <Page
-        title="{i18n>finPageTitle}"
-        showNavButton="true"
-        navButtonPress=".onNavBack"
-    >
-        <content>
-            <VBox class="sapUiSmallMargin">
-                <Title
-                    text="{i18n>finAreaTitle}"
-                    titleStyle="H2"
-                    class="sapUiSmallMarginBottom"
-                />
-
-                <!-- Formulário de Lançamento -->
-                <form:SimpleForm
-                    editable="true"
-                    layout="ResponsiveGridLayout"
-                    title="{i18n>finFormTitle}"
-                >
-                    <form:content>
-                        <Label text="{i18n>finLabelData}" />
-                        <DatePicker
-                            id="idDataLancamento"
-                            displayFormat="short"
-                            valueFormat="yyyy-MM-dd"
-                            placeholder="Selecione a data"
-                        />
-
-                        <Label text="{i18n>finLabelValor}" />
-                        <Input
-                            id="idValorDespesa"
-                            type="Number"
-                            placeholder="0,00"
-                            description="BRL"
-                        />
-
-                        <Label text="{i18n>finLabelDescricao}" />
-                        <Input
-                            id="idDescricaoDespesa"
-                            placeholder="Ex: Supermercado"
-                        />
-
-                        <Label text="" />
-                        <Button
-                            text="{i18n>finBtnInsert}"
-                            type="Emphasized"
-                            press="onAddExpense"
-                            width="150px"
-                        />
-                    </form:content>
-                </form:SimpleForm>
-
-                <!-- Tabela de Despesas -->
-                <Table
-                    id="idTableDespesas"
-                    items="{localModel>/expenses}"
-                    class="sapUiMediumMarginTop"
-                    noDataText="{i18n>finNoData}"
-                >
-                    <headerToolbar>
-                        <OverflowToolbar>
-                            <Title text="{i18n>finTableTitle}" />
-                            <ToolbarSpacer />
-
-                            <!-- Exibição do Total -->
-                            <ObjectStatus
-                                id="idTotalMes"
-                                title="Total do Mês"
-                                text="R$ 0,00"
-                                state="Success"
-                                class="sapUiSmallMarginEnd"
-                            />
-
-                            <!-- Botão para disparar o cálculo -->
-                            <Button
-                                icon="sap-icon://money-bills"
-                                text="Calcular Mês"
-                                type="Ghost"
-                                press="onCalculateMonthlyTotal"
-                            />
-                        </OverflowToolbar>
-                    </headerToolbar>
-                    <columns>
-                        <Column>
-                            <Text text="{i18n>finColData}" />
-                        </Column>
-                        <Column>
-                            <Text text="{i18n>finColDescricao}" />
-                        </Column>
-                        <Column hAlign="End">
-                            <Text text="{i18n>finColValor}" />
-                        </Column>
-                        <Column
-                            width="3rem"
-                            hAlign="Center"
-                        >
-                            <Text text="" />
-                        </Column>
-                    </columns>
-                    <items>
-                        <ColumnListItem>
-                            <cells>
-                                <Text
-                                    text="{path: 'localModel>date', type: 'sap.ui.model.type.Date', formatOptions: { style: 'short' }}"
-                                />
-                                <Text text="{localModel>description}" />
-                                <ObjectNumber
-                                    number="{path: 'localModel>value', type: 'sap.ui.model.type.Float', formatOptions: { minFractionDigits: 2 }}"
-                                    unit="BRL"
-                                    state="Error"
-                                />
-                                <Button
-                                    icon="sap-icon://delete"
-                                    type="Transparent"
-                                    press="onDeleteExpense"
-                                    tooltip="Excluir Lançamento"
-                                />
-                            </cells>
-                        </ColumnListItem>
-                    </items>
-                </Table>
-            </VBox>
-        </content>
-
-        <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer />
-                <Button
-                    text="{i18n>finBtnSave}"
-                    type="Accept"
-                />
-            </OverflowToolbar>
-        </footer>
-    </Page>
+<mvc:View controllerName="portalrbl.app.ui5.controller.Contas" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:f="sap.f" xmlns:layout="sap.ui.layout" xmlns:form="sap.ui.layout.form" >
+	<Page title="{i18n>finPageTitle}" showNavButton="false" navButtonPress=".onNavBack" ><content>
+			<VBox class="sapUiSmallMargin">
+				<Title text="{i18n>finAreaTitle}" titleStyle="H2" class="sapUiSmallMarginBottom" /><!-- Formulário de Lançamento -->
+				<form:SimpleForm editable="true" layout="ResponsiveGridLayout" title="{i18n>finFormTitle}" ><form:content>
+						<Label text="{i18n>finLabelData}" /><DatePicker id="idDataLancamento" displayFormat="short" valueFormat="yyyy-MM-dd" placeholder="Selecione a data" />
+						<Label text="{i18n>finLabelValor}" /><Input id="idValorDespesa" type="Number" placeholder="0,00" description="BRL" />
+						<Label text="{i18n>finLabelDescricao}" /><Input id="idDescricaoDespesa" placeholder="Ex: Supermercado" />
+						<Label text="" />
+						<Button text="{i18n>finBtnInsert}" type="Emphasized" press="onAddExpense" width="150px" /></form:content>
+				</form:SimpleForm>
+				<!-- Tabela de Despesas -->
+				<Table id="idTableDespesas" items="{localModel>/expenses}" class="sapUiMediumMarginTop" noDataText="{i18n>finNoData}" ><headerToolbar>
+					<OverflowToolbar>
+						<Title text="{i18n>finTableTitle}" /><ToolbarSpacer />
+						<!-- Exibição do Total -->
+						<ObjectStatus id="idTotalMes" title="Total do Mês" text="R$ 0,00" state="Success" class="sapUiSmallMarginEnd" />
+						<!-- Botão para disparar o cálculo -->
+						<Button icon="sap-icon://money-bills" text="Calcular Mês" type="Ghost" press="onCalculateMonthlyTotal" />
+					</OverflowToolbar>
+				</headerToolbar>
+				<columns>
+					<Column>
+						<Text text="{i18n>finColData}" /></Column>
+					<Column>
+						<Text text="{i18n>finColDescricao}" /></Column>
+					<Column hAlign="End">
+						<Text text="{i18n>finColValor}" /></Column>
+					<Column width="3rem" hAlign="Center" >
+						<Text text="" />
+					</Column>
+				</columns>
+				<items>
+					<ColumnListItem>
+						<cells>
+							<Text text="{ path: 'localModel>date', type: 'sap.ui.model.type.DateTime', formatOptions: { source: { pattern: 'yyyy-MM-ddTHH:mm:ss.SSSX' }, pattern: 'dd/MM/yyyy', UTC: true } }" />
+                            <Text text="{localModel>description}" />
+                            <ObjectNumber number="{path: 'localModel>value', type: 'sap.ui.model.type.Float', formatOptions: { minFractionDigits: 2 }}" unit="BRL" state="Error" />
+                            <Button icon="sap-icon://delete" type="Transparent" press="onDeleteExpense" tooltip="Excluir Lançamento" />
+						</cells>
+					</ColumnListItem>
+				</items>
+			</Table>
+		</VBox>
+	</content>
+</Page>
 </mvc:View>

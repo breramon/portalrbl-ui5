@@ -25,17 +25,8 @@ sap.ui.define([
 
             var oRouter = this.getOwnerComponent().getRouter();
 
-            // 1. Buscamos a rota
-            var oRoute = oRouter.getRoute("financial");
+            this._loadFirebaseData();
 
-            // 2. Verificamos se ela existe antes de prosseguir
-            if (oRoute) {
-                oRoute.attachPatternMatched(this._loadFirebaseData, this);
-            } else {
-                console.error("Erro: A rota 'financial' não foi encontrada no manifest.json. Verifique o case-sensitivity.");
-                // Opcional: carregar os dados mesmo sem a rota bater, se necessário
-                this._loadFirebaseData();
-            }
         },
 
         /**
@@ -58,7 +49,17 @@ sap.ui.define([
                             oItem.id = key;
                             return oItem;
                         });
+
+                        // --- SORTING LOGIC START ---
+                        aLoadedExpenses.sort(function (a, b) {
+                        // Use 'new Date()' to ensure accurate chronological comparison
+                        return new Date(a.date) - new Date(b.date);
+                     });
+                        // --- SORTING LOGIC END ---
+
+
                         oModel.setProperty("/expenses", aLoadedExpenses);
+
                     } else {
                         oModel.setProperty("/expenses", []);
                     }
@@ -93,7 +94,6 @@ sap.ui.define([
                 }
                 return acc;
             }, 0);
-
             // Formata para R$ (Padrão Brasileiro)
             var oCurrencyFormat = NumberFormat.getCurrencyInstance({
                 currencyCode: false,
@@ -102,7 +102,8 @@ sap.ui.define([
                 }
             });
 
-            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({ minFractionDigits: 2 }).format(fTotal);
+            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({ minFractionDigits: 2,
+    maxFractionDigits: 2 }).format(fTotal);
             oView.byId("idTotalMes").setText(sFormattedTotal);
         },
 
