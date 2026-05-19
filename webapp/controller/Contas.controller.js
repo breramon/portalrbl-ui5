@@ -25,17 +25,23 @@ sap.ui.define([
 
             var oRouter = this.getOwnerComponent().getRouter();
 
-            this._loadFirebaseData();
+            var oDate = this.getView().byId("idDataLancamento").getDateValue();
 
+            this._loadFirebaseData(oDate);
         },
 
         /**
-         * Carrega os dados do Firebase e atualiza o total automaticamente
+         * Carrega os dados do Firebase e filtra apenas pelo mês/ano selecionados
          */
-        _loadFirebaseData: function () {
+        _loadFirebaseData: function (oDate) {
             var oView = this.getView();
             var oModel = oView.getModel("localModel");
             var that = this;
+
+            // Se por acaso a data não vier preenchida, assume a data atual para não quebrar o código
+            if (!oDate) {
+                oDate = new Date();
+            }
 
             fetch(this._sFirebaseUrl)
                 .then(response => {
@@ -44,19 +50,33 @@ sap.ui.define([
                 })
                 .then(data => {
                     if (data) {
-                        var aLoadedExpenses = Object.keys(data).map(function (key) {
+                        // 1. Mapeia o objeto do Firebase para um formato de Array padrão
+                        var aAllExpenses = Object.keys(data).map(function (key) {
                             var oItem = data[key];
                             oItem.id = key;
                             return oItem;
                         });
 
+                        // 2. Guarda o mês e o ano que queremos filtrar
+                        var iSelectedMonth = oDate.getMonth();
+                        var iSelectedYear = oDate.getFullYear();
+
+                        // 3. Filtra mantendo apenas os registros do mesmo mês e ano
+                        var aLoadedExpenses = aAllExpenses.filter(function (oItem) {
+                            if (!oItem.date) {
+                                return false; // Ignora registros sem data para evitar erros
+                            }
+                            var oItemDate = new Date(oItem.date);
+                            return oItemDate.getMonth() === iSelectedMonth && 
+                                   oItemDate.getFullYear() === iSelectedYear;
+                        });
+
                         // --- SORTING LOGIC START ---
                         aLoadedExpenses.sort(function (a, b) {
-                        // Use 'new Date()' to ensure accurate chronological comparison
-                        return new Date(a.date) - new Date(b.date);
-                     });
+                            // Use 'new Date()' to ensure accurate chronological comparison
+                            return new Date(a.date) - new Date(b.date);
+                        });
                         // --- SORTING LOGIC END ---
-
 
                         oModel.setProperty("/expenses", aLoadedExpenses);
 
@@ -94,6 +114,7 @@ sap.ui.define([
                 }
                 return acc;
             }, 0);
+            
             // Formata para R$ (Padrão Brasileiro)
             var oCurrencyFormat = NumberFormat.getCurrencyInstance({
                 currencyCode: false,
@@ -102,8 +123,10 @@ sap.ui.define([
                 }
             });
 
-            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({ minFractionDigits: 2,
-    maxFractionDigits: 2 }).format(fTotal);
+            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({
+                minFractionDigits: 2,
+                maxFractionDigits: 2
+            }).format(fTotal);
             oView.byId("idTotalMes").setText(sFormattedTotal);
         },
 
@@ -112,7 +135,13 @@ sap.ui.define([
          */
         onCalculateMonthlyTotal: function () {
             this._updateTotal();
-            MessageToast.show("Total atualizado com base na data selecionada.");
+            MessageToast.show("Total actualizado com base na data selecionada.");
+        },
+        onDatePickerChange: function(event){
+            
+            var oDate = this.getView().byId("idDataLancamento").getDateValue();
+            this._loadFirebaseData(oDate);
+
         },
 
         onAddExpense: function () {
@@ -139,8 +168,24 @@ sap.ui.define([
                 .then(response => response.json())
                 .then(data => {
                     oNewExpense.id = data.name;
-                    aExpenses.push(oNewExpense);
-                    oModel.setProperty("/expenses", aExpenses);
+                    
+                    // Valida se o novo item pertence ao mês visualizado antes de adicionar na tabela local
+                    var oRefDate = oView.byId("idDataLancamento").getDateValue() || new Date();
+                    if (oNewExpense.date.getMonth() === oRefDate.getMonth() && 
+                        oNewExpense.date.getFullYear() === oRefDate.getFullYear()) {
+                        
+                        aExpenses.push(oNewExpense);
+                        
+                        // Garante que a lista local permaneça ordenada por data
+                        aExpenses.sort(function (a, b) {
+                            return new Date(a.date) - new Date(b.date);
+                        });
+                        
+                        oModel.setProperty("/expenses", aExpenses);
+                    } else {
+                        // Se o usuário adicionou um item de outro mês, recarrega os dados do mês atual dele
+                        that._loadFirebaseData(oRefDate);
+                    }
 
                     // Limpa campos e ATUALIZA O TOTAL
                     oView.byId("idValorDespesa").setValue("");

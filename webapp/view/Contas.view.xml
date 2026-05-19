@@ -3,7 +3,8 @@
 			<VBox class="sapUiSmallMargin">
 				<Title text="{i18n>finAreaTitle}" titleStyle="H2" class="sapUiSmallMarginBottom" /><!-- Formulário de Lançamento -->
 				<form:SimpleForm editable="true" layout="ResponsiveGridLayout" title="{i18n>finFormTitle}" ><form:content>
-						<Label text="{i18n>finLabelData}" /><DatePicker id="idDataLancamento" displayFormat="short" valueFormat="yyyy-MM-dd" placeholder="Selecione a data" />
+						<Label text="{i18n>finLabelData}" />
+						<DatePicker id="idDataLancamento" displayFormat="short" valueFormat="yyyy-MM-dd" placeholder="Selecione a data" change="onDatePickerChange" />
 						<Label text="{i18n>finLabelValor}" /><Input id="idValorDespesa" type="Number" placeholder="0,00" description="BRL" />
 						<Label text="{i18n>finLabelDescricao}" /><Input id="idDescricaoDespesa" placeholder="Ex: Supermercado" />
 						<Label text="" />
