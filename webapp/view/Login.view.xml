@@ -1,0 +1,43 @@
+<mvc:View
+    controllerName="portalrbl.app.ui5.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    displayBlock="true">
+    <Page title="Login">
+        <content>
+            
+            <VBox 
+                class="sapUiSmallMargin" 
+                alignItems="Center" 
+                justifyContent="Center"
+                visible="{= !${user>/email} }">
+                
+                <Button
+                    text="Entrar"
+                    press="onLogin"
+                    type="Emphasized" />
+
+                <Title text="ou" level="H5" class="sapUiSmallMarginTopBottom" />
+                
+                <Button
+                    text="Entrar com o Google"
+                    icon="sap-icon://competitor"  press="onGoogleLogin"
+                    type="Accept"
+                    width="300px" />
+                
+            </VBox>
+
+            <VBox 
+                class="sapUiSmallMargin" 
+                alignItems="Center" 
+                justifyContent="Center"
+                visible="{= !!${user>/email} }"> <Title text="Você já está conectado!" level="H3" class="sapUiSmallMarginBottom"/>
+                <Text text="Usuário: {user>/email}" class="sapUiSmallMarginBottom"/>
+                <Button text="Ir para a página principal" press="onNavigateToMain" type="Emphasized"/>
+                
+            </VBox>
+
+            
+            </content>
+    </Page>
+</mvc:View>

@@ -30,7 +30,10 @@
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "portalrbl.app.ui5.i18n.i18n",
-          "supportedLocales": ["pt", "en"],
+          "supportedLocales": [
+            "pt",
+            "en"
+          ],
           "fallbackLocale": "pt"
         }
       }
@@ -47,16 +50,31 @@
       "routes": [
         {
           "pattern": "",
+          "name": "login",
+          "target": [
+            "loginTarget"
+          ]
+        },
+        {
+          "pattern": "main",
           "name": "main",
-          "target": ["main"]
+          "target": [
+            "main"
+          ]
         },
         {
           "name": "RouteFinancial",
           "pattern": "financial",
-          "target": ["TargetFinancial"]
+          "target": [
+            "TargetFinancial"
+          ]
         }
       ],
       "targets": {
+        "loginTarget": {
+          "viewId": "Login",
+          "viewName": "Login"
+        },
         "main": {
           "viewId": "Contas",
           "viewName": "Contas"
@@ -72,7 +90,7 @@
       "libs": {
         "sap.ui.core": {},
         "sap.m": {},
-        "sap.uxap": {} 
+        "sap.uxap": {}
       }
     }
   }

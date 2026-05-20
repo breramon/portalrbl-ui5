@@ -8,9 +8,12 @@
     "fiori-run": "npm run start-local"
   },
   "devDependencies": {
-    "@ui5/cli": "^3.0.0",
-    "@sap/ux-ui5-tooling": "1.0.12"
+    "@sap/ux-ui5-tooling": "1.0.12",
+    "@ui5/cli": "^3.0.0"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
 }
