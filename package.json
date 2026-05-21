@@ -4,13 +4,14 @@
   "description": "A Fiori application.",
   "scripts": {
     "start": "node generate-config.js && ui5 serve",
-    "build": "node generate-config.js && ui5 build",
+    "build": "node generate-config.js && ui5 build && cpy webapp/firebase-config.js dist/",
     "start-local": "ui5 serve --config=ui5-local.yaml",
     "fiori-run": "npm run start-local"
   },
   "devDependencies": {
     "@sap/ux-ui5-tooling": "1.0.12",
-    "@ui5/cli": "^3.0.0"
+    "@ui5/cli": "^3.0.0",
+    "cpy-cli": "^7.0.0"
   },
   "author": "",
   "license": "ISC",

@@ -17,6 +17,6 @@ window.localConfig = {
 `;
 
 fs.writeFileSync(
-    "./webapp/localconfig.js",
+    "./webapp/firebase-config.js",
     content
 );
