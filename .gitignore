@@ -2,3 +2,5 @@ node_modules/
 dist/
 webapp/test/
 .ui5/
+.env
+webapp/localconfig.js

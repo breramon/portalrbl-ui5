@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "A Fiori application.",
   "scripts": {
-    "start": "ui5 serve",
+    "start": "node generate-config.js && ui5 serve",
+    "build": "node generate-config.js && ui5 build",
     "start-local": "ui5 serve --config=ui5-local.yaml",
     "fiori-run": "npm run start-local"
   },
