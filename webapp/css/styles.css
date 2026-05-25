@@ -1,9 +1,11 @@
-.customNumberTile .sapMObjectNumberText {
-    font-size: 1.0rem;
-    font-weight: 250;
+.compactTile {
+    min-width: 8rem !important;
 }
 
-.customNumberTile .sapMObjectNumberUnit {
-    font-size: 0.7rem;
-    font-weight: 250;
+.compactTile .sapMGTContent {
+    padding: 0.4rem !important;
+}
+
+.compactTile .sapMGTHdrContent {
+    padding-bottom: 0.2rem !important;
 }

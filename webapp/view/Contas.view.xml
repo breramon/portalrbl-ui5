@@ -35,14 +35,15 @@
 
                 <HBox
                     wrap="Wrap"
-                    justifyContent="SpaceAround"
+                    justifyContent="Start"
                     class="sapUiTinyMarginBottom"
                 >
                     <GenericTile
                         id="idTotalR"
                         frameType="OneByHalf"
                         header="Ramon"
-                        class="sapUiTinyMargin"
+                        width="9rem"
+                        class="sapUiTinyMarginEnd sapUiTinyMarginBottom compactTile"
                     >
                         <TileContent>
                             <ObjectNumber
@@ -57,7 +58,8 @@
                         id="idTotalF"
                         frameType="OneByHalf"
                         header="Fabi"
-                        class="sapUiTinyMargin"
+                        width="9rem"
+                        class="sapUiTinyMarginEnd sapUiTinyMarginBottom compactTile"
                     >
                         <TileContent>
                             <ObjectNumber
