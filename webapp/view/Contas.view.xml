@@ -33,17 +33,42 @@
                     </HBox>
                 </HBox>
 
-                <!-- Uma linha bem fina e com margem mínima para economizar pixels na tela do celular -->
-                <core:HTML
-                    content="&lt;hr style='border: 0; border-top: 1px solid #f0f0f0; margin-bottom: 0.5rem; top: 0;' /&gt;"
-                />
-
-                <!-- Título da Área Financeira -->
-                <Title
-                    text="{i18n>finAreaTitle}"
-                    titleStyle="H2"
-                    class="sapUiSmallMarginBottom"
-                />
+                <HBox
+                    wrap="Wrap"
+                    justifyContent="SpaceAround"
+                    class="sapUiTinyMarginBottom"
+                >
+                    <GenericTile
+                        id="idTotalR"
+                        frameType="OneByHalf"
+                        header="Ramon"
+                        class="sapUiTinyMargin"
+                    >
+                        <TileContent>
+                            <ObjectNumber
+                                number="11.110,00"
+                                unit="BRL"
+                                state="Success"
+                                class="customNumberTile"
+                            />
+                        </TileContent>
+                    </GenericTile>
+                    <GenericTile
+                        id="idTotalF"
+                        frameType="OneByHalf"
+                        header="Fabi"
+                        class="sapUiTinyMargin"
+                    >
+                        <TileContent>
+                            <ObjectNumber
+                                number="11.110,00"
+                                unit="BRL"
+                                state="Success"
+                                class="customNumberTile"
+                            />
+                        </TileContent>
+                    </GenericTile>
+                </HBox>
 
                 <!-- Formulário de Lançamento -->
                 <form:SimpleForm
@@ -103,13 +128,6 @@
                                 text="R$ 0,00"
                                 state="Success"
                                 class="sapUiSmallMarginEnd"
-                            />
-                            <!-- Botão para disparar o cálculo -->
-                            <Button
-                                icon="sap-icon://money-bills"
-                                text="Calcular Mês"
-                                type="Ghost"
-                                press="onCalculateMonthlyTotal"
                             />
                         </OverflowToolbar>
                     </headerToolbar>

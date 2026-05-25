@@ -19,6 +19,13 @@
     }
   },
   "sap.ui5": {
+    "resources": {
+      "css": [
+        {
+          "uri": "css/styles.css"
+        }
+      ]
+    },
     "rootView": {
       "viewName": "portalrbl.app.ui5.view.App",
       "type": "XML",

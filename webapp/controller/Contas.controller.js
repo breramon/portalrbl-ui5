@@ -115,27 +115,29 @@ sap.ui.define([
                 return acc;
             }, 0);
             
-            // Formata para R$ (Padrão Brasileiro)
-            var oCurrencyFormat = NumberFormat.getCurrencyInstance({
-                currencyCode: false,
-                customCurrencies: {
-                    "BRL": { "symbol": "R$" }
-                }
-            });
+            var fTotalF = fTotal / 3;
+            var fTotalR = fTotal - fTotalF;
 
-            var sFormattedTotal = "R$ " + NumberFormat.getFloatInstance({
+            var fTotalF_txt = NumberFormat.getFloatInstance({
+                minFractionDigits: 2,
+                maxFractionDigits: 2
+            }).format(fTotalF);
+
+            var fTotalR_txt = NumberFormat.getFloatInstance({
+                minFractionDigits: 2,
+                maxFractionDigits: 2
+            }).format(fTotalR);
+
+            var sFormattedTotal = NumberFormat.getFloatInstance({
                 minFractionDigits: 2,
                 maxFractionDigits: 2
             }).format(fTotal);
-            oView.byId("idTotalMes").setText(sFormattedTotal);
-        },
 
-        /**
-         * Evento do botão "Calcular Mês" (caso queira recalcular manualmente ao trocar data)
-         */
-        onCalculateMonthlyTotal: function () {
-            this._updateTotal();
-            MessageToast.show("Total actualizado com base na data selecionada.");
+            oView.byId("idTotalMes").setText("R$ " + sFormattedTotal);
+
+            oView.byId("idTotalR").getTileContent()[0].getContent().setNumber(fTotalR_txt);
+            oView.byId("idTotalF").getTileContent()[0].getContent().setNumber(fTotalF_txt);
+
         },
         onDatePickerChange: function(event){
             

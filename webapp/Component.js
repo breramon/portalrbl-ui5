@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
-    "sap/ui/model/json/JSONModel", // CORREÇÃO 1: Faltava uma vírgula bem aqui!
-    "./util/Firebase"
-], function (UIComponent, JSONModel, Firebase) {
+    "sap/ui/model/json/JSONModel",
+    "./util/Firebase",
+    "sap/ui/dom/includeStylesheet"
+], function (UIComponent, JSONModel, Firebase, includeStylesheet) {
     "use strict";
     
     return UIComponent.extend("portalrbl.app.ui5.Component", {
@@ -10,6 +11,8 @@ sap.ui.define([
         
         init: function () {
             UIComponent.prototype.init.apply(this, arguments);
+
+includeStylesheet("css/styles.css");
 
             this.getRouter().initialize();
 

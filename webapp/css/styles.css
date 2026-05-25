@@ -1,0 +1,9 @@
+.customNumberTile .sapMObjectNumberText {
+    font-size: 1.0rem;
+    font-weight: 250;
+}
+
+.customNumberTile .sapMObjectNumberUnit {
+    font-size: 0.7rem;
+    font-weight: 250;
+}
