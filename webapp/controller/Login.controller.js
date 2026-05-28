@@ -20,9 +20,9 @@ sap.ui.define([
         onLogin: function () {
             // ... (sua lógica existente de E-mail/Senha)
         },
-        
+
         // Método para navegação manual para a tela principal
-        onNavigateToMain: function() {
+        onNavigateToMain: function () {
             // Obtém o roteador e navega para a rota 'home'
             UIComponent.getRouterFor(this).navTo("main");
         },
@@ -30,7 +30,7 @@ sap.ui.define([
         // FUNÇÃO CORRIGIDA: Login com o Google
         onGoogleLogin: function () {
             var oFirebaseModel = this.getView().getModel("firebase");
-            
+
             if (!oFirebaseModel) {
                 MessageToast.show("Erro: Modelo do Firebase não foi carregado na View.");
                 return;
@@ -52,15 +52,20 @@ sap.ui.define([
                 .then((result) => {
                     // Login bem-sucedido!
                     var oUser = result.user;
+                    var sUserUid = result.sUserUid;
+
+                   
+
+
                     MessageToast.show("Bem-vindo, " + oUser.displayName + "!");
-                    
-                      //this.onNavigateToMain();
+
+                    //this.onNavigateToMain();
                 })
                 .catch((error) => {
                     // Trata erros (ex: usuário fechou o popup antes de logar, problemas de rede, etc.)
                     MessageToast.show("Erro no login com Google: " + error.message);
                     console.error("Erro detalhado no Google Sign-In:", error);
                 });
-        } 
+        }
     });
 });

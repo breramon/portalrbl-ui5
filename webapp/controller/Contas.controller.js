@@ -10,7 +10,7 @@ sap.ui.define([
 
     return Controller.extend("portalrbl.app.ui5.controller.Contas", {
 
-        // URL OFICIAL DO SEU BANCO
+        // URL Raiz do seu banco (buscaremos o link dinâmico via manifest futuramente, mas mantive por compatibilidade)
         _sFirebaseUrl: "https://portalrbl-ui5-default-rtdb.firebaseio.com/expenses.json",
 
         onInit: function () {
@@ -23,25 +23,31 @@ sap.ui.define([
             // 2. Define data atual no DatePicker por padrão
             this.getView().byId("idDataLancamento").setDateValue(new Date());
 
-            var oRouter = this.getOwnerComponent().getRouter();
-
             var oDate = this.getView().byId("idDataLancamento").getDateValue();
 
-            this._loadFirebaseData(oDate);
+            // 3. Aguarda o SAPUI5 carregar os modelos globais antes de tentar puxar dados
+            this.getOwnerComponent().getModel("usuarioLogado").dataLoaded().then(() => {
+                this._loadFirebaseData(oDate);
+            }).catch(() => {
+                // Caso queira garantir o disparo se dataLoaded não estiver disponível
+                this._loadFirebaseData(oDate);
+            });
         },
 
         /**
-         * Carrega os dados do Firebase e filtra apenas pelo mês/ano selecionados
+         * Carrega os dados do Firebase e filtra por mês/ano E pelo grupo ativo do usuário
          */
         _loadFirebaseData: function (oDate) {
             var oView = this.getView();
             var oModel = oView.getModel("localModel");
             var that = this;
 
-            // Se por acaso a data não vier preenchida, assume a data atual para não quebrar o código
             if (!oDate) {
                 oDate = new Date();
             }
+            // Pega o grupo selecionado atualmente no modelo global centralizado
+            var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
+            var sGrupoAtivo = oUsuarioModel ? oUsuarioModel.getProperty("/grupoAtivo") : "0";
 
             fetch(this._sFirebaseUrl)
                 .then(response => {
@@ -50,33 +56,36 @@ sap.ui.define([
                 })
                 .then(data => {
                     if (data) {
-                        // 1. Mapeia o objeto do Firebase para um formato de Array padrão
+                        // 1. Mapeia o objeto do Firebase para Array
                         var aAllExpenses = Object.keys(data).map(function (key) {
                             var oItem = data[key];
                             oItem.id = key;
                             return oItem;
                         });
 
-                        // 2. Guarda o mês e o ano que queremos filtrar
                         var iSelectedMonth = oDate.getMonth();
                         var iSelectedYear = oDate.getFullYear();
 
-                        // 3. Filtra mantendo apenas os registros do mesmo mês e ano
+                        // 2. Filtra por Mês, Ano E pelo Grupo Ativo ("0" ou o Pessoal)
                         var aLoadedExpenses = aAllExpenses.filter(function (oItem) {
                             if (!oItem.date) {
-                                return false; // Ignora registros sem data para evitar erros
+                                return false;
                             }
+
                             var oItemDate = new Date(oItem.date);
-                            return oItemDate.getMonth() === iSelectedMonth && 
-                                   oItemDate.getFullYear() === iSelectedYear;
+
+                            // Conversão para String garante a validação correta mesmo se gravado como número
+                            var sItemGrupo = oItem.grupo !== undefined ? String(oItem.grupo) : "0";
+
+                            return oItemDate.getMonth() === iSelectedMonth &&
+                                oItemDate.getFullYear() === iSelectedYear &&
+                                sItemGrupo === String(sGrupoAtivo); // <--- FILTRO POR GRUPO AQUI
                         });
 
-                        // --- SORTING LOGIC START ---
+                        // 3. Ordenação Cronológica
                         aLoadedExpenses.sort(function (a, b) {
-                            // Use 'new Date()' to ensure accurate chronological comparison
-                            return new Date(a.date) - new Date(b.date);
+                            return new Date(b.date) - new Date(a.date);
                         });
-                        // --- SORTING LOGIC END ---
 
                         oModel.setProperty("/expenses", aLoadedExpenses);
 
@@ -84,7 +93,6 @@ sap.ui.define([
                         oModel.setProperty("/expenses", []);
                     }
 
-                    // CHAMA O CÁLCULO AUTOMÁTICO APÓS CARREGAR
                     that._updateTotal();
                 })
                 .catch(error => {
@@ -94,56 +102,34 @@ sap.ui.define([
         },
 
         /**
-         * Função Centralizada para Cálculo de Total Mensal
+         * Função Centralizada para Cálculo de Total Mensal (Apenas do grupo exibido)
          */
         _updateTotal: function () {
             var oView = this.getView();
             var oModel = oView.getModel("localModel");
             var aExpenses = oModel.getProperty("/expenses") || [];
 
-            // Pega a data do DatePicker para saber qual mês somar
-            var oRefDate = oView.byId("idDataLancamento").getDateValue() || new Date();
-            var iMonth = oRefDate.getMonth();
-            var iYear = oRefDate.getFullYear();
-
-            // Filtra e soma
+            // Soma apenas os itens que passaram pelo filtro anterior
             var fTotal = aExpenses.reduce(function (acc, item) {
-                var oItemDate = new Date(item.date);
-                if (oItemDate.getMonth() === iMonth && oItemDate.getFullYear() === iYear) {
-                    return acc + parseFloat(item.value || 0);
-                }
-                return acc;
+                return acc + parseFloat(item.value || 0);
             }, 0);
-            
+
+            // Divisão proporcional fixa fictícia (exemplo mantido conforme original)
             var fTotalF = fTotal / 3;
             var fTotalR = fTotal - fTotalF;
 
-            var fTotalF_txt = NumberFormat.getFloatInstance({
-                minFractionDigits: 2,
-                maxFractionDigits: 2
-            }).format(fTotalF);
-
-            var fTotalR_txt = NumberFormat.getFloatInstance({
-                minFractionDigits: 2,
-                maxFractionDigits: 2
-            }).format(fTotalR);
-
-            var sFormattedTotal = NumberFormat.getFloatInstance({
-                minFractionDigits: 2,
-                maxFractionDigits: 2
-            }).format(fTotal);
+            var fTotalF_txt = NumberFormat.getFloatInstance({ minFractionDigits: 2, maxFractionDigits: 2 }).format(fTotalF);
+            var fTotalR_txt = NumberFormat.getFloatInstance({ minFractionDigits: 2, maxFractionDigits: 2 }).format(fTotalR);
+            var sFormattedTotal = NumberFormat.getFloatInstance({ minFractionDigits: 2, maxFractionDigits: 2 }).format(fTotal);
 
             oView.byId("idTotalMes").setText("R$ " + sFormattedTotal);
-
             oView.byId("idTotalR").getTileContent()[0].getContent().setNumber(fTotalR_txt);
             oView.byId("idTotalF").getTileContent()[0].getContent().setNumber(fTotalF_txt);
-
         },
-        onDatePickerChange: function(event){
-            
+
+        onDatePickerChange: function (event) {
             var oDate = this.getView().byId("idDataLancamento").getDateValue();
             this._loadFirebaseData(oDate);
-
         },
 
         onAddExpense: function () {
@@ -152,17 +138,21 @@ sap.ui.define([
             var aExpenses = oModel.getProperty("/expenses");
             var that = this;
 
+            // Pega o grupo ativo atual direto do modelo unificado
+            var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
+            var sGrupoAtivo = oUsuarioModel.getProperty("/grupoAtivo");
+
             var oNewExpense = {
                 date: oView.byId("idDataLancamento").getDateValue(),
                 value: parseFloat(oView.byId("idValorDespesa").getValue()),
-                description: oView.byId("idDescricaoDespesa").getValue()
+                description: oView.byId("idDescricaoDespesa").getValue(),
+                grupo: sGrupoAtivo // Salva de forma dinâmica baseado em quem está logado
             };
 
             if (!oNewExpense.value || !oNewExpense.description) {
                 MessageToast.show("Preencha valor e descrição.");
                 return;
             }
-
             fetch(this._sFirebaseUrl, {
                 method: 'POST',
                 body: JSON.stringify(oNewExpense)
@@ -170,26 +160,34 @@ sap.ui.define([
                 .then(response => response.json())
                 .then(data => {
                     oNewExpense.id = data.name;
-                    
-                    // Valida se o novo item pertence ao mês visualizado antes de adicionar na tabela local
+
+                    // Força a data do objeto local a ser a String ISO (igualzinho ao banco)
+                    // antes de injetar o registro na tabela da tela
+                    if (oNewExpense.date instanceof Date) {
+                        oNewExpense.date = oNewExpense.date.toISOString();
+                    }
+                    // ---------------------
+
                     var oRefDate = oView.byId("idDataLancamento").getDateValue() || new Date();
-                    if (oNewExpense.date.getMonth() === oRefDate.getMonth() && 
-                        oNewExpense.date.getFullYear() === oRefDate.getFullYear()) {
-                        
+                    var oCurrentItemDate = new Date(oNewExpense.date); // Cria uma instância temporária para o IF abaixo
+
+                    // Valida se o novo item pertence ao mês visualizado
+                    if (oCurrentItemDate.getMonth() === oRefDate.getMonth() &&
+                        oCurrentItemDate.getFullYear() === oRefDate.getFullYear()) {
+
                         aExpenses.push(oNewExpense);
-                        
+
                         // Garante que a lista local permaneça ordenada por data
                         aExpenses.sort(function (a, b) {
-                            return new Date(a.date) - new Date(b.date);
+                            return new Date(b.date) - new Date(a.date);
                         });
-                        
+
                         oModel.setProperty("/expenses", aExpenses);
                     } else {
-                        // Se o usuário adicionou um item de outro mês, recarrega os dados do mês atual dele
+                        // Se o usuário adicionou um item de outro mês, recarrega os dados daquele mês
                         that._loadFirebaseData(oRefDate);
                     }
 
-                    // Limpa campos e ATUALIZA O TOTAL
                     oView.byId("idValorDespesa").setValue("");
                     oView.byId("idDescricaoDespesa").setValue("");
                     that._updateTotal();
@@ -217,7 +215,6 @@ sap.ui.define([
                                 aExpenses.splice(iIndex, 1);
                                 oModel.setProperty("/expenses", aExpenses);
 
-                                // ATUALIZA O TOTAL APÓS APAGAR
                                 that._updateTotal();
                                 MessageToast.show("Eliminado.");
                             });
@@ -234,6 +231,33 @@ sap.ui.define([
             } else {
                 this.getOwnerComponent().getRouter().navTo("main", {}, true);
             }
+        },
+
+        /**
+         * Evento executado ao alternar o ToggleButton de tipo de despesa
+         */
+        onToggleTipoDespesa: function (oEvent) {
+            var bPressed = oEvent.getParameter("pressed");
+            var oButton = oEvent.getSource();
+
+            // Pega o modelo centralizado mapeado no Component.js
+            var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
+
+            if (bPressed) {
+                // Modo PESSOAL (muda ícone e altera grupo ativo para o id pessoal dele vindo do banco - ex: "1")
+                oButton.setIcon("sap-icon://private");
+                var sPessoal = oUsuarioModel.getProperty("/grupoPessoal");
+                oUsuarioModel.setProperty("/grupoAtivo", sPessoal);
+            } else {
+                // Modo GLOBAL (retorna o ícone e altera grupo ativo para o id global do banco - "0")
+                oButton.setIcon("sap-icon://role");
+                var sGlobal = oUsuarioModel.getProperty("/grupoGlobal");
+                oUsuarioModel.setProperty("/grupoAtivo", sGlobal);
+            }
+
+            // Força a atualização da tabela relendo e refiltrando os dados com o novo grupo ativo
+            var oDate = this.getView().byId("idDataLancamento").getDateValue();
+            this._loadFirebaseData(oDate);
         }
     });
 });

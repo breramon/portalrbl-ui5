@@ -16,24 +16,33 @@
                 <HBox
                     alignItems="Center"
                     justifyContent="SpaceBetween"
+                    width="100%"
                     class="sapUiTinyMarginBottom"
                 >
                     <HBox alignItems="Center">
                         <Avatar
-                            src="{user>/photoURL}"
+                            src="{usuarioLogado>/photoURL}"
                             displayShape="Circle"
                             displaySize="XS"
                             class="sapUiTinyMarginEnd"
                             fallbackIcon="sap-icon://person-placeholder"
                         />
                         <Text
-                            text="Olá, {user>/displayName}"
+                            text="Olá, {usuarioLogado>/displayName}"
                             class="sapUiSelectableText"
                         />
                     </HBox>
+
+                    <ToggleButton
+                        id="idFlagPessoal"
+                        icon="sap-icon://role"
+                        pressed="false"
+                        tooltip="Grupo {= ${usuarioLogado>/grupoAtivo} }"
+                        press="onToggleTipoDespesa"
+                    />
                 </HBox>
 
-                <HBox
+                <HBox visible="{= ${usuarioLogado>/grupoAtivo} === '0' }"
                     wrap="Wrap"
                     justifyContent="Start"
                     class="sapUiTinyMarginBottom"
@@ -47,7 +56,7 @@
                     >
                         <TileContent>
                             <ObjectNumber
-                                number="11.110,00"
+                                number="0,00"
                                 unit="BRL"
                                 state="Success"
                                 class="customNumberTile"
@@ -63,7 +72,7 @@
                     >
                         <TileContent>
                             <ObjectNumber
-                                number="11.110,00"
+                                number="0,00"
                                 unit="BRL"
                                 state="Success"
                                 class="customNumberTile"
@@ -101,7 +110,6 @@
                             id="idDescricaoDespesa"
                             placeholder="Ex: Supermercado"
                         />
-
                         <Label text="" />
                         <Button
                             text="{i18n>finBtnInsert}"

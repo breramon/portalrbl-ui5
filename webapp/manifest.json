@@ -43,6 +43,16 @@
           ],
           "fallbackLocale": "pt"
         }
+      },
+      "usuarioLogado": {
+        "type": "sap.ui.model.json.JSONModel",
+        "preload": true
+      },
+      "config": {
+        "type": "sap.ui.model.json.JSONModel",
+        "settings": {
+          "firebaseUrl": "https://portalrbl-ui5-default-rtdb.firebaseio.com"
+        }
       }
     },
     "routing": {
