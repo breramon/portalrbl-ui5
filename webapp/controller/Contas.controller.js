@@ -256,7 +256,7 @@ sap.ui.define([
             var bPressed = oEvent.getParameter("pressed");
             var oButton = oEvent.getSource();
             var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
-
+            
             if (bPressed) {
                 oButton.setIcon("sap-icon://private");
                 var sPessoal = oUsuarioModel.getProperty("/grupoPessoal");

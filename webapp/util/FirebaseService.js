@@ -22,9 +22,7 @@ sap.ui.define([], function () {
          * Busca a lista completa de usuários (Utilizado no Component.js)
          */
         getUsuarios: function (oComponent, sToken) {
-            
-            debugger;
-            
+                       
             var sUrl = this._getBaseUrl(oComponent) + "/usuarios.json?auth=" + sToken;
             
             return new Promise(function (resolve, reject) {

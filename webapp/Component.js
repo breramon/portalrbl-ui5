@@ -39,65 +39,92 @@ sap.ui.define([
             var oAuth = Firebase.getProperty("/auth");
 
             if (!oAuth) {
-                if (this._oBusyDialog) this._oBusyDialog.close(); // Destrava se houver erro grave
+                if (this._oBusyDialog) this._oBusyDialog.close();
                 return;
             }
 
-            oAuth.onAuthStateChanged((user) => {
+            // Mantém o escopo correto guardando o 'this' do Componente em uma variável fixa
+            var oComponent = this;
+
+            oAuth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    user.getIdToken().then((sToken) => {
-                        FirebaseService.getUsuarios(this, sToken)
-                            .then((aUsuarios) => {
-                                var oDadosBanco = null;
+                    try {
+                        // 1. Aguarda a geração do Token JWT
+                        var sToken = await user.getIdToken();
 
-                                if (aUsuarios) {
-                                    oDadosBanco = Object.values(aUsuarios).find(u => u && (u.uid === user.uid || u.username === user.email));
-                                }
+                        // 2. Aguarda a resposta do banco NoSQL através do Service
+                        var aUsuarios = await FirebaseService.getUsuarios(oComponent, sToken);
 
-                                if (oDadosBanco) {
-                                    var sGrupoGlobal = oDadosBanco.grupos ? oDadosBanco.grupos[0] : "0";
-                                    var sGrupoPessoal = oDadosBanco.grupos ? oDadosBanco.grupos[1] : "1";
+                        var oDadosBanco = null;
 
-                                    oUsuarioModel.setData({
-                                        uid: user.uid,
-                                        token: sToken,
-                                        email: user.email,
-                                        displayName: user.displayName,
-                                        photoURL: user.photoURL,
-                                        grupoGlobal: sGrupoGlobal,
-                                        grupoPessoal: sGrupoPessoal,
-                                        grupoAtivo: sGrupoGlobal
-                                    });
-                                } else {
-                                    oUsuarioModel.setData({ uid: user.uid, token: sToken, email: user.email, grupoAtivo: "0", grupoGlobal: "0", grupoPessoal: "1" });
-                                }
-
-                                this.getEventBus().publish("Component", "UserAuthenticated");
-                                oRouter.navTo("main", {}, true);
-
-                                // 2. SUCESSO LOGADO: Fecha o BusyDialog e libera a tela direto na Main
-                                if (this._oBusyDialog) {
-                                    this._oBusyDialog.close();
-                                }
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                oRouter.navTo("login", {}, true);
-                                // 3. ERRO: Fecha o BusyDialog para permitir o login manual
-                                if (this._oBusyDialog) this._oBusyDialog.close();
+                        if (aUsuarios) {
+                            // Pegamos a chave real (o UID que está no nó do Firebase)
+                            var sUserKey = Object.keys(aUsuarios).find(function (sKey) {
+                                // sKey vai receber "mfnpcPB5ibc..." na primeira volta e "xj8r1Kkh..." na segunda
+                                return sKey === user.uid;
                             });
-                    }).catch((oError) => {
-                        console.error(oError);
-                        if (this._oBusyDialog) this._oBusyDialog.close();
-                    });
+
+                            // Se encontrou a chave correspondente ao UID logado
+                            if (sUserKey) {
+                                oDadosBanco = aUsuarios[sUserKey];
+                                // Injeta o UID para garantir que o resto do código funcione se precisar dele
+                                oDadosBanco.uid = sUserKey;
+                            } else {
+                                // Fallback caso queira buscar pelo username igual ao e-mail (como estava antes)
+                                oDadosBanco = Object.values(aUsuarios).find(function (u) {
+                                    return u && u.username === user.email;
+                                });
+                            }
+                        }
+
+                        if (oDadosBanco) {
+                            var sGrupoGlobal = oDadosBanco.grupos ? oDadosBanco.grupos[0] : "0";
+                            var sGrupoPessoal = oDadosBanco.grupos ? oDadosBanco.grupos[1] : "1";
+
+                            oUsuarioModel.setData({
+                                uid: user.uid,
+                                token: sToken,
+                                email: user.email,
+                                displayName: user.displayName,
+                                photoURL: user.photoURL,
+                                grupoGlobal: sGrupoGlobal,
+                                grupoPessoal: sGrupoPessoal,
+                                grupoAtivo: sGrupoGlobal
+                            });
+                        } else {
+                            console.warn("Usuário não encontrado na base cadastral. Aplicando padrão.");
+                            oUsuarioModel.setData({
+                                uid: user.uid,
+                                token: sToken,
+                                email: user.email,
+                                grupoAtivo: "9",
+                                grupoGlobal: "9",
+                                grupoPessoal: "9"
+                            });
+                        }
+
+                        // 3. Dispara o sinal usando 'oComponent' (Garante o escopo correto do SAPUI5)
+                        oComponent.getEventBus().publish("Component", "UserAuthenticated");
+
+                        // Navega para a tela principal
+                        oRouter.navTo("main", {}, true);
+
+                    } catch (err) {
+                        console.error("Erro no fluxo de autenticação/carga de dados:", err);
+                        oRouter.navTo("login", {}, true);
+                    } finally {
+                        // Executa SEMPRE no final (sucesso ou erro) para destravar a tela do usuário
+                        if (oComponent._oBusyDialog) {
+                            oComponent._oBusyDialog.close();
+                        }
+                    }
 
                 } else {
+                    // Usuário deslogado
                     oUsuarioModel.setData(null);
                     oRouter.navTo("login", {}, true);
-
-                    // 4. DESLOGADO: Usuário realmente precisa logar, então fecha o diálogo e libera a tela de login
-                    if (this._oBusyDialog) {
-                        this._oBusyDialog.close();
+                    if (oComponent._oBusyDialog) {
+                        oComponent._oBusyDialog.close();
                     }
                 }
             });
