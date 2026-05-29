@@ -2,92 +2,103 @@ sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/model/json/JSONModel",
     "./util/Firebase",
+    "./util/FirebaseService", // Módulo de serviço centralizado
     "sap/ui/dom/includeStylesheet"
-], function (UIComponent, JSONModel, Firebase, includeStylesheet) {
+], function (UIComponent, JSONModel, Firebase, FirebaseService, includeStylesheet) {
     "use strict";
 
     return UIComponent.extend("portalrbl.app.ui5.Component", {
         metadata: { manifest: "json" },
 
+        // ... seus sap.ui.define existentes ...
         init: function () {
-            // Inicializa a classe pai
+            // 1. Cria e exibe o bloqueio de tela imediatamente ao abrir o app
+            this._oBusyDialog = new sap.m.BusyDialog({
+                text: "Carregando o aplicativo...",
+                title: "Por favor, aguarde"
+            });
+            this._oBusyDialog.open();
+
+            // Inicializa a classe pai do SAPUI5
             UIComponent.prototype.init.apply(this, arguments);
 
-            // Carrega folha de estilo customizada
+            // Carrega a folha de estilo customizada
             includeStylesheet("css/styles.css");
 
             // Inicializa o roteador do App
             this.getRouter().initialize();
 
-            // Configura os modelos e escuta o estado da autenticação
+            // Configura a validação de segurança e login
             this._setupAuthentication();
         },
 
-        /**
-         * Inicializa o Firebase, define os modelos e monitora o Login/Logout
-         */
         _setupAuthentication: function () {
             var oRouter = this.getRouter();
-            
-            // 1. Vincula o modelo utilitário do Firebase que você criou
             this.setModel(Firebase, "firebase");
-
-            // 2. Resgata o modelo 'usuarioLogado' que foi declarado no manifest.json
             var oUsuarioModel = this.getModel("usuarioLogado");
-            
-            // 3. Pega a instância do Auth do Firebase
             var oAuth = Firebase.getProperty("/auth");
 
             if (!oAuth) {
-                console.error("Serviço de autenticação do Firebase não foi inicializado.");
+                if (this._oBusyDialog) this._oBusyDialog.close(); // Destrava se houver erro grave
                 return;
             }
 
-            // Monitora o estado de login do usuário em tempo real
             oAuth.onAuthStateChanged((user) => {
                 if (user) {
-                    
-                    // Usuário está autenticado! Agora buscamos a URL base do banco para ler o nó 'usuarios'
-                    var sBaseUrl = this.getModel("config").getProperty("/firebaseUrl");
-                    var sUrlUsuarios = sBaseUrl + "/usuarios/" + user.uid + ".json";
+                    user.getIdToken().then((sToken) => {
+                        FirebaseService.getUsuarios(this, sToken)
+                            .then((aUsuarios) => {
+                                var oDadosBanco = null;
 
-                    // Requisição para buscar os grupos deste usuário no banco NoSQL
-                    jQuery.ajax({
-                        url: sUrlUsuarios,
-                        type: "GET",
-                        success: (oDadosBanco) => {
-                            
-                            
-                            // Se o usuário existir na tabela do banco, extrai os grupos, senão aplica padrões
-                            var sGrupoGlobal = oDadosBanco && oDadosBanco.grupos ? oDadosBanco.grupos[0] : "0";
-                            var sGrupoPessoal = oDadosBanco && oDadosBanco.grupos ? oDadosBanco.grupos[1] : "1";
+                                if (aUsuarios) {
+                                    oDadosBanco = Object.values(aUsuarios).find(u => u && (u.uid === user.uid || u.username === user.email));
+                                }
 
-                            // Alimenta o modelo global centralizado
-                            oUsuarioModel.setData({
-                                uid: user.uid,
-                                email: user.email,
-                                displayName: user.displayName,
-                                photoURL: user.photoURL,
-                                grupoGlobal: sGrupoGlobal,
-                                grupoPessoal: sGrupoPessoal,
-                                grupoAtivo: sGrupoGlobal // O app inicializa lançando no Global ("0")
+                                if (oDadosBanco) {
+                                    var sGrupoGlobal = oDadosBanco.grupos ? oDadosBanco.grupos[0] : "0";
+                                    var sGrupoPessoal = oDadosBanco.grupos ? oDadosBanco.grupos[1] : "1";
+
+                                    oUsuarioModel.setData({
+                                        uid: user.uid,
+                                        token: sToken,
+                                        email: user.email,
+                                        displayName: user.displayName,
+                                        photoURL: user.photoURL,
+                                        grupoGlobal: sGrupoGlobal,
+                                        grupoPessoal: sGrupoPessoal,
+                                        grupoAtivo: sGrupoGlobal
+                                    });
+                                } else {
+                                    oUsuarioModel.setData({ uid: user.uid, token: sToken, email: user.email, grupoAtivo: "0", grupoGlobal: "0", grupoPessoal: "1" });
+                                }
+
+                                this.getEventBus().publish("Component", "UserAuthenticated");
+                                oRouter.navTo("main", {}, true);
+
+                                // 2. SUCESSO LOGADO: Fecha o BusyDialog e libera a tela direto na Main
+                                if (this._oBusyDialog) {
+                                    this._oBusyDialog.close();
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                oRouter.navTo("login", {}, true);
+                                // 3. ERRO: Fecha o BusyDialog para permitir o login manual
+                                if (this._oBusyDialog) this._oBusyDialog.close();
                             });
-
-                            // Redireciona para a home
-                            oRouter.navTo("main", {}, true);
-                        },
-                        error: (oError) => {
-                            console.error("Erro ao recuperar permissões do usuário no banco:", oError);
-                            // Mesmo com erro na busca do grupo, permite o login com dados básicos
-                            oUsuarioModel.setData({ uid: user.uid, email: user.email, grupoAtivo: "9" });
-                            oRouter.navTo("main", {}, true);
-                        }
+                    }).catch((oError) => {
+                        console.error(oError);
+                        if (this._oBusyDialog) this._oBusyDialog.close();
                     });
 
                 } else {
-                    // Usuário realizou logout ou não está autenticado
                     oUsuarioModel.setData(null);
                     oRouter.navTo("login", {}, true);
+
+                    // 4. DESLOGADO: Usuário realmente precisa logar, então fecha o diálogo e libera a tela de login
+                    if (this._oBusyDialog) {
+                        this._oBusyDialog.close();
+                    }
                 }
             });
         }
