@@ -32,7 +32,6 @@
                             class="sapUiSelectableText"
                         />
                     </HBox>
-
                     <ToggleButton
                         id="idFlagPessoal"
                         icon="sap-icon://role"
@@ -41,8 +40,16 @@
                         press="onToggleTipoDespesa"
                     />
                 </HBox>
-
-                <HBox visible="{= ${usuarioLogado>/grupoAtivo} === '0' }"
+                <MessageStrip
+                    text="Nubank dia 04, Picpay dia 05"
+                    type="Information"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiMediumMarginBottom"
+                    
+                />
+                <HBox
+                    visible="{= ${usuarioLogado>/grupoAtivo} === '0' }"
                     wrap="Wrap"
                     justifyContent="Start"
                     class="sapUiTinyMarginBottom"
@@ -119,7 +126,6 @@
                         />
                     </form:content>
                 </form:SimpleForm>
-
                 <!-- Tabela de Despesas -->
                 <Table
                     id="idTableDespesas"
