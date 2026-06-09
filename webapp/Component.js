@@ -80,6 +80,9 @@ sap.ui.define([
                         if (oDadosBanco) {
                             var sGrupoGlobal = oDadosBanco.grupos ? oDadosBanco.grupos[0] : "0";
                             var sGrupoPessoal = oDadosBanco.grupos ? oDadosBanco.grupos[1] : "1";
+                            
+                            // Parametros
+                            var bRangeData = oDadosBanco.param ? oDadosBanco.param[0]: false;
 
                             oUsuarioModel.setData({
                                 uid: user.uid,
@@ -89,7 +92,8 @@ sap.ui.define([
                                 photoURL: user.photoURL,
                                 grupoGlobal: sGrupoGlobal,
                                 grupoPessoal: sGrupoPessoal,
-                                grupoAtivo: sGrupoGlobal
+                                grupoAtivo: sGrupoGlobal,
+                                rangeData: bRangeData
                             });
                         } else {
                             console.warn("Usuário não encontrado na base cadastral. Aplicando padrão.");

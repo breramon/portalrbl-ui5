@@ -22,25 +22,26 @@ sap.ui.define([
             this.getView().byId("idDataLancamento").setDateValue(new Date());
 
             var oDate = this.getView().byId("idDataLancamento").getDateValue();
+            var oDate2 = this.getView().byId("idDataLancamento2").getDateValue();
 
             // 3. CORREÇÃO: Pega o modelo de usuário
             var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
 
             // Se o token já existir (o usuário mudou de tela e já estava logado)
             if (oUsuarioModel && oUsuarioModel.getProperty("/token")) {
-                this._loadFirebaseData(oDate);
+                this._loadFirebaseData(oDate, oDate2);
             } else {
                 // Se o token ainda não existe (o app acabou de iniciar), criamos um listener na propriedade
                 // para disparar o carregamento assim que o Component.js injetar o token ali!
                 oUsuarioModel.attachPropertyChange(function (oEvent) {
                     if (oEvent.getParameter("path") === "/token" && oEvent.getParameter("value")) {
-                        this._loadFirebaseData(oDate);
+                        this._loadFirebaseData(oDate, oDate2);
                     }
                 }, this);
 
                 // Como garantia secundária, se o modelo atualizar o objeto inteiro de uma vez via .setData():
                 this.getOwnerComponent().getEventBus().subscribe("Component", "UserAuthenticated", function () {
-                    this._loadFirebaseData(oDate);
+                    this._loadFirebaseData(oDate, oDate2);
                 }, this);
             }
         },
@@ -48,7 +49,7 @@ sap.ui.define([
         /**
          * Carrega os dados através do Service centralizado e aplica os filtros de tela
          */
-        _loadFirebaseData: function (oDate) {
+        _loadFirebaseData: function (oDate, oDate2) {
             var oView = this.getView();
             var oModel = oView.getModel("localModel");
             var that = this;
@@ -75,18 +76,33 @@ sap.ui.define([
                         var iSelectedMonth = oDate.getMonth();
                         var iSelectedYear = oDate.getFullYear();
 
-                        // 2. Filtra mantendo apenas o mês/ano e o grupo ativo selecionado
-                        var aLoadedExpenses = aAllExpenses.filter(function (oItem) {
-                            if (!oItem.date) {
-                                return false;
-                            }
-                            var oItemDate = new Date(oItem.date);
-                            var sItemGrupo = oItem.grupo !== undefined ? String(oItem.grupo) : "0";
+                        if (!oDate2) {
 
-                            return oItemDate.getMonth() === iSelectedMonth &&
-                                oItemDate.getFullYear() === iSelectedYear &&
-                                sItemGrupo === String(sGrupoAtivo);
-                        });
+                            // 2. Filtra mantendo apenas o mês/ano e o grupo ativo selecionado
+                            var aLoadedExpenses = aAllExpenses.filter(function (oItem) {
+                                if (!oItem.date) {
+                                    return false;
+                                }
+                                var oItemDate = new Date(oItem.date);
+                                var sItemGrupo = oItem.grupo !== undefined ? String(oItem.grupo) : "0";
+
+                                return oItemDate.getMonth() === iSelectedMonth &&
+                                    oItemDate.getFullYear() === iSelectedYear &&
+                                    sItemGrupo === String(sGrupoAtivo);
+                            });
+
+                        } else {
+
+                            aLoadedExpenses = aAllExpenses.filter(function (oItem) {
+                                if (!oItem.date) {
+                                    return false;
+                                }
+                                var oItemDate = new Date(oItem.date);
+                                var sItemGrupo = oItem.grupo !== undefined ? String(oItem.grupo) : "0";
+
+                                return (oItemDate >= oDate && oItemDate <= oDate2) && sItemGrupo === String(sGrupoAtivo);
+                            });
+                        }
 
                         // 3. Ordenação Decrescente (Mais recente no topo)
                         aLoadedExpenses.sort(function (a, b) {
@@ -139,7 +155,9 @@ sap.ui.define([
          */
         onDatePickerChange: function (event) {
             var oDate = this.getView().byId("idDataLancamento").getDateValue();
-            this._loadFirebaseData(oDate);
+            var oDate2 = this.getView().byId("idDataLancamento2").getDateValue();
+
+            this._loadFirebaseData(oDate, oDate2);
         },
 
         /**
@@ -193,7 +211,7 @@ sap.ui.define([
                         oModel.setProperty("/expenses", aExpenses);
                     } else {
                         // Se for de outro mês, força o recarregamento com a data alvo
-                        that._loadFirebaseData(oRefDate);
+                        that._loadFirebaseData(oRefDate, null);
                     }
 
                     // Limpa os inputs da tela e recalcula o cabeçalho de totais
@@ -256,7 +274,7 @@ sap.ui.define([
             var bPressed = oEvent.getParameter("pressed");
             var oButton = oEvent.getSource();
             var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
-            
+
             if (bPressed) {
                 oButton.setIcon("sap-icon://private");
                 var sPessoal = oUsuarioModel.getProperty("/grupoPessoal");
