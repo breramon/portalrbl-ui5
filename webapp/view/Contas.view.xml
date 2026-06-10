@@ -19,7 +19,7 @@
                     width="100%"
                     class="sapUiTinyMarginBottom"
                 >
-                    <HBox alignItems="Center"> 
+                    <HBox alignItems="Center">
                         <Avatar
                             src="{usuarioLogado>/photoURL}"
                             displayShape="Circle"
@@ -162,7 +162,7 @@
                             <Text text="{i18n>finColValor}" />
                         </Column>
                         <Column
-                            width="3rem"
+                            width="6rem"
                             hAlign="Center"
                         >
                             <Text text="" />
@@ -171,7 +171,8 @@
                     <items>
                         <ColumnListItem>
                             <cells>
-                                <Text text="{
+                                <Text
+                                    text="{
                                     path: 'localModel>date',
                                     type: 'sap.ui.model.type.DateTime',
                                     formatOptions: {
@@ -181,7 +182,8 @@
                                         pattern: 'dd/MM/yyyy',
                                         UTC: true
                                     }
-                                }" />
+                                }"
+                                />
                                 <Text text="{localModel>description}" />
                                 <ObjectNumber
                                     number="{
@@ -191,15 +193,23 @@
                                             minFractionDigits: 2
                                         }
                                     }"
-                                    unit="BRL"
                                     state="Error"
                                 />
-                                <Button
-                                    icon="sap-icon://delete"
-                                    type="Transparent"
-                                    press="onDeleteExpense"
-                                    tooltip="Excluir Lançamento"
-                                />
+                                <HBox justifyContent="End">
+                                    <Button
+                                        icon="sap-icon://write-new-document"
+                                        type="Transparent"
+                                        press="onOpenEditExpense"
+                                        tooltip="Editar Lançamento"
+                                        class="sapUiTinyMarginEnd"
+                                    />
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        press="onDeleteExpense"
+                                        tooltip="Excluir Lançamento"
+                                    />
+                                </HBox>
                             </cells>
                         </ColumnListItem>
                     </items>

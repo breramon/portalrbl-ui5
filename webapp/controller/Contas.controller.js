@@ -222,7 +222,101 @@ sap.ui.define([
                     MessageToast.show("Salvo com sucesso!");
                 });
         },
+        onOpenEditExpense: function (oEvent) {
 
+            var oItemContext = oEvent.getSource().getBindingContext("localModel");
+            var oSelectedExpense = oItemContext.getObject();
+
+            // Guarda o path do item original para sabermos onde atualizar na tabela local depois
+            this._sCurrentEditPath = oItemContext.getPath();
+
+            // Cria um modelo isolado para a edição (evita que o usuário altere a tabela de fundo antes de clicar em salvar)
+            var oEditModel = new JSONModel(Object.assign({}, oSelectedExpense));
+            this.getView().setModel(oEditModel, "editModel");
+
+            // Instancia o fragmento XML do Dialog caso ele ainda não exista em memória
+            if (!this._oEditDialog) {
+                this._oEditDialog = sap.ui.xmlfragment(this.getView().getId(), "portalrbl.app.ui5.view.fragments.EditExpenseDialog", this);
+                this.getView().addDependent(this._oEditDialog);
+            }
+
+            this._oEditDialog.open();
+        },
+
+        onCloseEditDialog: function () {
+            if (this._oEditDialog) {
+                this._oEditDialog.close();
+            }
+        },
+        onSaveEditedExpense: function () {
+            var oView = this.getView();
+            var oEditModel = oView.getModel("editModel");
+            var oEditedData = oEditModel.getData();
+            var that = this;
+
+            // 1. CAPTURA O ESTADO DO SWITCH DO FRAGMENTO
+            var bIsPessoal = oView.byId("idEditGrupoDespesa").getState();
+
+            if (bIsPessoal) {
+                // Se o usuário ligou o switch para "Pessoal", resgatamos o ID do grupo pessoal dele do modelo global
+                var oUsuarioModel = this.getOwnerComponent().getModel("usuarioLogado");
+                oEditedData.grupo = String(oUsuarioModel.getProperty("/grupoPessoal"));
+            } else {
+                // Se desligou, vira Grupo Global ("0")
+                oEditedData.grupo = "0";
+            }
+
+            // Validações básicas
+            if (!oEditedData.value || !oEditedData.description) {
+                MessageToast.show("Preencha valor e descrição.");
+                return;
+            }
+
+            // Tratamento do campo de data caso venha como objeto Date puro do DatePicker do fragmento
+            if (oEditedData.date instanceof Date) {
+                oEditedData.date = oEditedData.date.toISOString();
+            }
+
+            // Garante que o valor vá salvo como número flutuante limpo
+            oEditedData.value = parseFloat(oEditedData.value);
+
+            // Dispara a atualização para o Firebase via Service
+            FirebaseService.updateExpense(this.getOwnerComponent(), oEditedData.id, oEditedData)
+                .then(() => {
+                    var oLocalModel = oView.getModel("localModel");
+                    var oUsuarioModel = that.getOwnerComponent().getModel("usuarioLogado");
+                    var sGrupoAtivo = oUsuarioModel.getProperty("/grupoAtivo");
+
+                    // 2. REGRA DE NEGÓCIO DA TELA: 
+                    // Se o usuário mudou o grupo da despesa na edição e ele NÃO é mais o grupo que está sendo visualizado na tela agora...
+                    if (String(oEditedData.grupo) !== String(sGrupoAtivo)) {
+                        // ... nós simplesmente removemos o item da listagem visual atual, já que ele mudou de "pasta"
+                        var aExpenses = oLocalModel.getProperty("/expenses");
+                        var iIndex = parseInt(that._sCurrentEditPath.split("/").pop());
+                        aExpenses.splice(iIndex, 1);
+                        oLocalModel.setProperty("/expenses", aExpenses);
+                    } else {
+                        // Se continuou no mesmo grupo, só atualiza os valores na linha normalmente
+                        oLocalModel.setProperty(that._sCurrentEditPath, oEditedData);
+                    }
+
+                    // Força a reordenação das despesas restantes
+                    var aCurrentExpenses = oLocalModel.getProperty("/expenses") || [];
+                    aCurrentExpenses.sort(function (a, b) {
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                    oLocalModel.setProperty("/expenses", aCurrentExpenses);
+
+                    // Fecha a janela, recalcula os blocos/tiles de totais e avisa o sucesso
+                    that.onCloseEditDialog();
+                    that._updateTotal();
+                    MessageToast.show("Alterações salvas com sucesso!");
+                })
+                .catch(oError => {
+                    console.error("Erro ao atualizar registro:", oError);
+                    MessageToast.show("Não foi possível salvar as modificações.");
+                });
+        },
         /**
          * Remove um registro do banco e da tabela da View
          */
@@ -256,17 +350,6 @@ sap.ui.define([
                 }
             });
         },
-
-        onNavBack: function () {
-            var oHistory = History.getInstance();
-            var sPreviousHash = oHistory.getPreviousHash();
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
-                this.getOwnerComponent().getRouter().navTo("main", {}, true);
-            }
-        },
-
         /**
          * Alterna visualização e gravação entre o Grupo Global ("0") e Pessoal ("1", "2")
          */
@@ -287,7 +370,9 @@ sap.ui.define([
 
             // Recarrega e filtra instantaneamente a tabela com base no novo grupo ativo selecionado
             var oDate = this.getView().byId("idDataLancamento").getDateValue();
-            this._loadFirebaseData(oDate);
+            var oDate2 = this.getView().byId("idDataLancamento2").getDateValue();
+
+            this._loadFirebaseData(oDate, oDate2);
         }
     });
 });

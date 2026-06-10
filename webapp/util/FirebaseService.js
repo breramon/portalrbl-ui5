@@ -22,9 +22,9 @@ sap.ui.define([], function () {
          * Busca a lista completa de usuários (Utilizado no Component.js)
          */
         getUsuarios: function (oComponent, sToken) {
-                       
+
             var sUrl = this._getBaseUrl(oComponent) + "/usuarios.json?auth=" + sToken;
-            
+
             return new Promise(function (resolve, reject) {
                 jQuery.ajax({
                     url: sUrl,
@@ -40,7 +40,7 @@ sap.ui.define([], function () {
          */
         getExpenses: function (oComponent) {
             var sUrl = this._getBaseUrl(oComponent) + "/expenses.json?auth=" + this._getToken(oComponent);
-            
+
             return fetch(sUrl).then(function (response) {
                 if (!response.ok) throw new Error("Erro ao buscar despesas.");
                 return response.json();
@@ -52,7 +52,7 @@ sap.ui.define([], function () {
          */
         createExpense: function (oComponent, oExpenseData) {
             var sUrl = this._getBaseUrl(oComponent) + "/expenses.json?auth=" + this._getToken(oComponent);
-            
+
             return fetch(sUrl, {
                 method: "POST",
                 body: JSON.stringify(oExpenseData)
@@ -61,12 +61,27 @@ sap.ui.define([], function () {
             });
         },
 
+        updateExpense: function (oComponent, sExpenseId, oExpenseData) {
+            var sUrl = this._getBaseUrl(oComponent) + "/expenses/" + sExpenseId + ".json?auth=" + this._getToken(oComponent);
+
+            return fetch(sUrl, {
+                method: "PUT",
+                body: JSON.stringify(oExpenseData)
+            }).then(function (response) {
+
+                if (!response.ok) throw new Error("Erro ao atualizar despesa.");
+
+                return response.json();
+
+            });
+        },
+
         /**
          * Deleta uma despesa pelo ID
          */
         deleteExpense: function (oComponent, sExpenseId) {
             var sUrl = this._getBaseUrl(oComponent) + "/expenses/" + sExpenseId + ".json?auth=" + this._getToken(oComponent);
-            
+
             return fetch(sUrl, { method: "DELETE" });
         }
     };

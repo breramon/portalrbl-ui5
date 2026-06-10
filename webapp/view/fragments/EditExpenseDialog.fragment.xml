@@ -1,0 +1,75 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form"
+>
+    <Dialog
+        id="idEditExpenseDialog"
+        title="Editar Lançamento"
+        contentWidth="400px"
+    >
+        <content>
+            <form:SimpleForm
+                editable="true"
+                layout="ResponsiveGridLayout"
+            >
+                <form:content>
+                    <Label text="Data" />
+                    <DatePicker
+                        id="idEditDataLancamento"
+                        displayFormat="short"
+                        valueFormat="dd/MM/yyyy"
+                        value="{
+                            path: 'editModel>/date', 
+                            type: 'sap.ui.model.type.Date', 
+                            formatOptions: {
+                                                source: {
+                                                    pattern: 'yyyy-MM-ddTHH:mm:ss.SSSX'
+                                                        },
+                                            pattern: 'dd/MM/yyyy',
+                                            UTC: true
+                                            }
+                                }"
+                    />
+
+                    <Label text="Valor" />
+                    <Input
+                        id="idEditValorDespesa"
+                        type="Number"
+                        description="BRL"
+                        value="{editModel>/value}"
+                    />
+
+                    <Label text="Descrição" />
+                    <Input
+                        id="idEditDescricaoDespesa"
+                        value="{editModel>/description}"
+                    />
+                    <Label text="Gasto pessoal?" />
+                    <Switch
+                        id="idEditGrupoDespesa"
+                        state="{= ${editModel>/grupo} !== '0' }"
+                        customTextOn="Pessoal"
+                        customTextOff="Global"
+                        type="AcceptReject"
+                        class="sapUiTinyMarginTop"
+                    />
+                </form:content>
+            </form:SimpleForm>
+        </content>
+        <beginButton>
+            <Button
+                text="Salvar"
+                type="Accept"
+                press="onSaveEditedExpense"
+            />
+        </beginButton>
+        <endButton>
+            <Button
+                text="Cancelar"
+                type="Reject"
+                press="onCloseEditDialog"
+            />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
